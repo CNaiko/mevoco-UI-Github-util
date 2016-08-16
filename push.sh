@@ -1,17 +1,21 @@
 #!/bin/bash
 
+set -e
+
 #configuration
 apiIssueBaseUrl='https://api.github.com/repos/zxwing/mevoco-ui/issues/'
 httpIssueBaseUrl='https://github.com/zxwing/mevoco-ui/issues/'
 uid=
 password=
 masterBase=master
-branchBase=1.5.x
+branchBase=1.6.x
 remoteOrigin=origin
 remoteMy=my
+mevocoPath=~/Documents/coding/web/mevoco-ui/
 
+cd $mevocoPath
 #get issue Id
-if [ -z "$1" ] 
+if [ -z "$1" ]
 then
     echo "Usage: your must specify a issue Number."
     exit 1
@@ -43,17 +47,27 @@ branchBranchExtend="$branchBase-iss$issueId"
 echo "you are at $curBranch going to create $curBranchExtend"
 
 #commit current modify
-commitLabel=$(curl --silent -u "$uid:$password" $apiIssueBaseUrl+$issueId \
-    | sed -n '/title/s/\"title\"://p' | sed -n 's/[\",]//gp' | head -n1)
+#commitLabel=$(curl --silent -u "$uid:$password" $apiIssueBaseUrl+$issueId \
+#    | sed -n '/title/s/\"title\"://p' | sed -n 's/[\",]//gp' | head -n1)
+if [ -z "$2" ]
+then
+    echo Usage: push.sh issueNumber CommitInfo
+    exit 1
+else
+    commitLabel=$2
+fi
 
 if [ ! -z "$commitLabel" ]
 then
     echo "Commit Message":$commitLabel
-    if git commit -am "[FIX]$commitLabel" -m "$httpIssueBaseUrl$issueId"
+    if git commit -am "[FIX]$commitLabel"
     then
         commitNumber=$(git log -n1 --pretty=format:"%H")
         echo Commit Hash Number:$commitNumber
     fi
+else
+    echo cannot get issue info, return
+    exit 1
 fi
 
 #do push for current branch
